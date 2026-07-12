@@ -1,0 +1,296 @@
+@import "tailwindcss";
+
+/* 
+ * CareerOS Workspace Light Theme Master Overrides
+ * Engineered for clean, Swiss-minimalist SDE layout aesthetic.
+ * Maps deep charcoal variables to soft Slate, crisp Ivory, and Indigo/Emerald accents.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Base Light Mode Styles */
+.light {
+  background-color: #f8fafc !important; /* Soft premium slate-50 background */
+  color: #0f172a !important; /* Rich ink slate-900 */
+}
+
+/* Map default dark backgrounds to light ivory */
+.light #sidebar,
+.light [id$="-view"],
+.light .bg-\[\#09090b\],
+.light .bg-\[\#0c0c0e\],
+.light .bg-\[\#131316\],
+.light .bg-zinc-900,
+.light .bg-zinc-950,
+.light .bg-black {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Light background layout wrappers */
+.light main,
+.light #settings-view,
+.light #tasks-view,
+.light #dashboard-view,
+.light #ai-coach-view,
+.light #calendar-view,
+.light #planner-view,
+.light #roadmap-view,
+.light #learning-view,
+.light #projects-view,
+.light #habits-view,
+.light #resume-view,
+.light #interview-view,
+.light #applications-view {
+  background-color: #f8fafc !important; /* Clean layout background */
+  color: #0f172a !important;
+}
+
+/* Translucent panels and lists mapping */
+.light .bg-\[\#09090b\/30\],
+.light .bg-\[\#09090b\/40\],
+.light .bg-\[\#09090b\/60\],
+.light .bg-\[\#09090b\/80\],
+.light .bg-\[\#0c0c0e\/40\],
+.light .bg-\[\#0c0c0e\/50\],
+.light .bg-\[\#0c0c0e\/60\],
+.light .bg-\[\#0c0c0e\/80\],
+.light .bg-\[\#0c0c0e\/90\],
+.light .bg-zinc-900\/50,
+.light .bg-zinc-900\/80,
+.light .bg-zinc-950\/50,
+.light .bg-zinc-950\/80 {
+  background-color: #f1f5f9 !important; /* Slate-100 */
+  color: #0f172a !important;
+}
+
+/* High contrast crisp borders */
+.light .border-\[\#1f1f23\],
+.light .border-\[\#1f1f23\/50\],
+.light .border-\[\#1f1f23\/80\],
+.light .border-\[\#27272a\],
+.light .border-zinc-800,
+.light .border-zinc-700 {
+  border-color: #e2e8f0 !important; /* Clean Slate-200 border lines */
+}
+
+/* Typography Color Overrides - Primary Titles */
+.light .text-\[\#fafafa\],
+.light .text-white,
+.light .text-zinc-50,
+.light .text-zinc-100,
+.light .text-zinc-200,
+.light .text-slate-100 {
+  color: #0f172a !important; /* Rich ink slate-900 */
+}
+
+/* Sub-titles and Secondary labels */
+.light .text-\[\#a1a1aa\],
+.light .text-\[\#a1a1aa\/80\],
+.light .text-zinc-300,
+.light .text-slate-200,
+.light .text-slate-300 {
+  color: #334155 !important; /* Slate-700 for highly readable body copy */
+}
+
+/* Muted annotations & system metadata */
+.light .text-\[\#71717a\],
+.light .text-zinc-400,
+.light .text-zinc-500,
+.light .text-slate-400,
+.light .text-slate-500 {
+  color: #475569 !important; /* Solid Slate-600 */
+}
+
+/* Buttons and Form Input Styling */
+.light input,
+.light select,
+.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important; /* slate-300 */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+.light input:focus,
+.light select:focus,
+.light textarea:focus {
+  border-color: #4f46e5 !important; /* Indigo accent border */
+  outline: 2px solid rgba(79, 70, 229, 0.15) !important;
+}
+
+/* Minor functional buttons & badge pills mapping */
+.light .bg-\[\#18181b\],
+.light .bg-\[\#18181b\/50\],
+.light .bg-zinc-800,
+.light .bg-zinc-800\/50,
+.light .bg-zinc-800\/30 {
+  background-color: #e2e8f0 !important; /* Slate-200 button backing */
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light .hover\:bg-\[\#18181b\]:hover,
+.light .hover\:bg-\[\#18181b\/50\]:hover,
+.light .hover\:bg-zinc-800:hover,
+.light .bg-zinc-800:hover,
+.light button.bg-\[\#18181b\]:hover,
+.light form button:hover {
+  background-color: #cbd5e1 !important; /* Hover slate-300 */
+  color: #0f172a !important;
+}
+
+/* Kanban categories & special cards */
+.light .bg-zinc-950\/40,
+.light .bg-[#09090b]/40 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+.light .bg-indigo-500\/5,
+.light .bg-blue-500\/5,
+.light .bg-emerald-500\/5,
+.light .bg-zinc-500\/5 {
+  background-color: #f1f5f9 !important; /* Soft cool grey fill */
+}
+
+/* Badge colors for statuses */
+.light .text-indigo-400 {
+  color: #4f46e5 !important; /* Pure indigo-600 */
+}
+.light .bg-indigo-500\/10 {
+  background-color: rgba(79, 70, 229, 0.1) !important;
+}
+
+.light .text-blue-400 {
+  color: #2563eb !important; /* Blue-600 */
+}
+.light .bg-blue-500\/10 {
+  background-color: rgba(37, 99, 235, 0.1) !important;
+}
+
+.light .text-emerald-400 {
+  color: #16a34a !important; /* Emerald-600 */
+}
+.light .bg-emerald-500\/10 {
+  background-color: rgba(22, 163, 74, 0.1) !important;
+}
+
+.light .text-amber-400,
+.light .text-amber-500 {
+  color: #d97706 !important; /* Amber-600 */
+}
+.light .bg-amber-500\/10 {
+  background-color: rgba(217, 119, 6, 0.1) !important;
+}
+
+.light .text-red-400,
+.light .text-red-500 {
+  color: #dc2626 !important; /* Red-600 */
+}
+.light .bg-red-500\/10 {
+  background-color: rgba(220, 38, 38, 0.1) !important;
+}
+
+/* SVG graphs, lines and telemetry grids */
+.light svg stroke {
+  stroke: #cbd5e1;
+}
+
+/* Sidebar Specific refinement */
+.light #sidebar {
+  background-color: #ffffff !important;
+  border-right: 1px solid #e2e8f0 !important;
+}
+
+.light #sidebar a,
+.light #sidebar button {
+  color: #475569 !important;
+}
+
+.light #sidebar a:hover,
+.light #sidebar button:hover,
+.light #sidebar .bg-\[\#18181b\] {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.light #sidebar .border-t {
+  border-top-color: #e2e8f0 !important;
+}
+
+/* System telemetry bar */
+.light #system-bar {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  color: #475569 !important;
+}
+
+.light #system-bar span,
+.light #system-bar button {
+  color: #334155 !important;
+}
+
+.light #system-bar button:hover {
+  background-color: #f1f5f9 !important;
+}
+
+.light #system-bar .absolute {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Modals and Overlays in Light mode */
+.light .fixed.inset-0.bg-black\/70,
+.light .fixed.inset-0.bg-black\/60 {
+  background-color: rgba(15, 23, 42, 0.4) !important; /* Soft Slate overlay */
+  backdrop-filter: blur(4px);
+}
+
+.light .fixed .bg-\[\#0c0c0e\],
+.light .fixed .bg-\[\#09090b\] {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* SDE AI Coach view custom items */
+.light .border-dashed {
+  border-color: #cbd5e1 !important;
+}
+
+.light .bg-indigo-500\/10 {
+  background-color: #f5f3ff !important;
+}
+
+/* Chart SVGs */
+.light .text-indigo-500 {
+  color: #4f46e5 !important;
+}
+
+.light .text-emerald-500 {
+  color: #16a34a !important;
+}
+
+/* Fixes for progress tracks */
+.light .bg-zinc-800 {
+  background-color: #e2e8f0 !important;
+}
+
+.light .bg-blue-600 {
+  background-color: #2563eb !important;
+}
+
+.light .bg-emerald-600 {
+  background-color: #16a34a !important;
+}
+
+.light .bg-indigo-600 {
+  background-color: #4f46e5 !important;
+}
