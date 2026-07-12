@@ -100,7 +100,7 @@ export default function AICoach() {
             <span>AI Career Coach</span>
           </h2>
           <p className="text-xs text-[#71717a] font-mono mt-0.5">
-            Gemini SDE advice engine synchronized directly with your CareerOS database
+            Gemini SDE advice engine synchronized directly with your PathForge database
           </p>
         </div>
 

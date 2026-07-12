@@ -6,7 +6,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "CareerOS Workspace",
+    "productName": "PathForge",
     "version": "1.0.0"
   },
   "tauri": {
@@ -16,7 +16,7 @@
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
-      "copyright": "Copyright 2026 CareerOS Team. All rights reserved.",
+      "copyright": "Copyright 2026 PathForge Team. All rights reserved.",
       "deb": {
         "depends": []
       },
@@ -28,7 +28,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.careeros.workspace",
+      "identifier": "com.pathforge.desktop",
       "longDescription": "A premium SDE productivity workspace with custom SQLite offline architecture, AI Career Coach, and Kanban schedulers.",
       "macOS": {
         "entitlements": null,
@@ -54,7 +54,7 @@
         "fullscreen": false,
         "height": 800,
         "resizable": true,
-        "title": "CareerOS SDE Workspace",
+        "title": "PathForge Desktop",
         "width": 1280
       }
     ]

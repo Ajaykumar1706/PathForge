@@ -67,7 +67,7 @@ export default function App() {
           >
             <Menu className="w-5.5 h-5.5" />
           </button>
-          <span className="font-sans font-bold text-sm text-white tracking-tight">CareerOS</span>
+          <span className="font-sans font-bold text-sm text-white tracking-tight">PathForge</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] font-mono text-[#71717a] bg-[#18181b] px-2 py-0.5 rounded border border-[#27272a] font-bold">

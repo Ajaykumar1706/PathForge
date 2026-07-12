@@ -102,7 +102,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
             </div>
             <div>
-              <h1 className="font-sans font-bold text-[#fafafa] tracking-tight leading-none text-base">CareerOS</h1>
+              <h1 className="font-sans font-bold text-[#fafafa] tracking-tight leading-none text-base">PathForge</h1>
               <span className="text-[10px] font-mono text-[#71717a] font-semibold uppercase tracking-wider">Active Workspace</span>
             </div>
           </div>

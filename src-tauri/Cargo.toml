@@ -1,8 +1,8 @@
 [package]
-name = "career-os"
+name = "path-forge"
 version = "1.0.0"
-description = "CareerOS - SDE Productivity Workspace"
-authors = ["CareerOS Team"]
+description = "PathForge - SDE Productivity Workspace"
+authors = ["PathForge Team"]
 edition = "2021"
 
 [build-dependencies]

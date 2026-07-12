@@ -259,7 +259,7 @@ const initialPlannerSlots: PlannerSlot[] = [
   { time: "08:00", label: "Exercise" },
   { time: "09:00", label: "Office Job" },
   { time: "18:30", label: "Learn SQL Queries", taskId: "t1" },
-  { time: "20:00", label: "Build CareerOS Project", taskId: "t5" },
+  { time: "20:00", label: "Build PathForge Project", taskId: "t5" },
   { time: "22:00", label: "Read Tech Articles" }
 ];
 
@@ -346,11 +346,11 @@ const initialSkills: LearningSkill[] = [
 const initialProjects: CareerProject[] = [
   {
     id: "p1",
-    name: "CareerOS Portal",
+    name: "PathForge Portal",
     description: "An offline-first operating system for software engineers to track growth.",
     techStack: ["React 19", "Vite", "Zustand", "Tailwind CSS", "Lucide Icons"],
-    gitHubUrl: "https://github.com/yourusername/careeros",
-    liveUrl: "https://careeros-preview.vercel.app",
+    gitHubUrl: "https://github.com/yourusername/pathforge",
+    liveUrl: "https://pathforge-preview.vercel.app",
     progress: 45,
     deploymentStatus: "success",
     notes: "Next step is implementing beautiful calendar scheduling and Gemini integrations.",
@@ -553,7 +553,7 @@ export const useStore = create<CareerOSState>((set, get) => {
     theme: loaded.theme || "dark",
     isAutoStart: loaded.isAutoStart !== undefined ? loaded.isAutoStart : true,
     notifications: loaded.notifications || [
-      { id: "init-1", text: "Welcome to CareerOS Workspace! Offline SQLite Engine Sync nominal.", timestamp: "14:40", type: "info" },
+      { id: "init-1", text: "Welcome to PathForge Workspace! Offline SQLite Engine Sync nominal.", timestamp: "14:40", type: "info" },
       { id: "init-2", text: "SQL Performance Optimization task has a High Priority today.", timestamp: "14:42", type: "warning" }
     ],
     dailyPriorities: loaded.dailyPriorities || initialDailyPriorities,
@@ -1101,7 +1101,7 @@ export const useStore = create<CareerOSState>((set, get) => {
         theme: "dark" as "dark" | "light",
         isAutoStart: true,
         notifications: [
-          { id: "init-1", text: "Database cleared! Welcome back to CareerOS. Offline SQLite Engine Sync nominal.", timestamp: "12:00", type: "info" as const }
+          { id: "init-1", text: "Database cleared! Welcome back to PathForge. Offline SQLite Engine Sync nominal.", timestamp: "12:00", type: "info" as const }
         ],
         dailyPriorities: initialDailyPriorities
       };

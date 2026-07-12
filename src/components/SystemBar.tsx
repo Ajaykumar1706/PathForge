@@ -154,7 +154,7 @@ export default function SystemBar() {
   const handleCheckUpdates = () => {
     if (checkingUpdates) return;
     setCheckingUpdates(true);
-    addNotification("Checking CareerOS SDE curriculum databases for updates...", "info");
+    addNotification("Checking PathForge SDE curriculum databases for updates...", "info");
 
     setTimeout(() => {
       setCheckingUpdates(false);
@@ -164,7 +164,7 @@ export default function SystemBar() {
 
   // Live active calendar synchronization (Real ICS download!)
   const handleExportICS = () => {
-    let icsContent = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//CareerOS//Calendar Sync//EN\r\nMETHOD:PUBLISH\r\n";
+    let icsContent = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//PathForge//Calendar Sync//EN\r\nMETHOD:PUBLISH\r\n";
 
     // Add tasks
     tasks.forEach((task) => {
@@ -173,10 +173,10 @@ export default function SystemBar() {
       const datePart = task.dueDate.replace(/-/g, "");
 
       icsContent += "BEGIN:VEVENT\r\n";
-      icsContent += `UID:task-${task.id}@careeros\r\n`;
+      icsContent += `UID:task-${task.id}@pathforge\r\n`;
       icsContent += `DTSTAMP:${datePart}T090000Z\r\n`;
       icsContent += `DTSTART;VALUE=DATE:${datePart}\r\n`;
-      icsContent += `SUMMARY:CareerOS Task: ${cleanTitle}\r\n`;
+      icsContent += `SUMMARY:PathForge Task: ${cleanTitle}\r\n`;
       icsContent += `DESCRIPTION:Priority: ${task.priority} | Status: ${task.status} | Category: ${task.category} - ${cleanDesc}\r\n`;
       icsContent += "END:VEVENT\r\n";
     });
@@ -187,7 +187,7 @@ export default function SystemBar() {
       const datePart = app.interviewDate!.replace(/-/g, "");
 
       icsContent += "BEGIN:VEVENT\r\n";
-      icsContent += `UID:interview-${app.id}@careeros\r\n`;
+      icsContent += `UID:interview-${app.id}@pathforge\r\n`;
       icsContent += `DTSTAMP:${datePart}T140000Z\r\n`;
       icsContent += `DTSTART:${datePart}T140000Z\r\n`;
       icsContent += `DTEND:${datePart}T150000Z\r\n`;
@@ -202,7 +202,7 @@ export default function SystemBar() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", "CareerOS_Schedule_Sync.ics");
+    link.setAttribute("download", "PathForge_Schedule_Sync.ics");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -234,7 +234,7 @@ export default function SystemBar() {
     const encodedUri = encodeURI(csvContent);
     const downloadAnchor = document.createElement("a");
     downloadAnchor.setAttribute("href", encodedUri);
-    downloadAnchor.setAttribute("download", `CareerOS_Active_Tasks_${new Date().toISOString().split("T")[0]}.csv`);
+    downloadAnchor.setAttribute("download", `PathForge_Active_Tasks_${new Date().toISOString().split("T")[0]}.csv`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -494,7 +494,7 @@ export default function SystemBar() {
               <div className="flex items-center justify-between bg-[#09090b] p-2.5 rounded-lg border border-[#1f1f23]">
                 <div>
                   <p className="font-bold text-zinc-200">Launch on Startup</p>
-                  <p className="text-[9px] text-zinc-500">Auto-start CareerOS on Boot</p>
+                  <p className="text-[9px] text-zinc-500">Auto-start PathForge on Boot</p>
                 </div>
                 <button
                   onClick={toggleAutoStart}

@@ -111,7 +111,7 @@ export default function ProjectManager() {
               <input
                 type="text"
                 required
-                placeholder="CareerOS Portal"
+                placeholder="PathForge Portal"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 className="w-full bg-[#09090b] border border-[#1f1f23] focus:border-blue-500 rounded-lg p-2.5 text-xs text-[#fafafa] focus:outline-none"
