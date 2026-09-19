@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useStore } from "../store";
+import { useStore, getTodayStr } from "../store";
 import { Task, TaskStatus, TaskPriority, TaskDifficulty } from "../types";
 import {
   List,
@@ -44,10 +44,11 @@ export default function TaskManager() {
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<TaskPriority>(TaskPriority.MEDIUM);
   const [difficulty, setDifficulty] = useState<TaskDifficulty>(TaskDifficulty.MEDIUM);
+  const [status, setStatus] = useState<TaskStatus>(TaskStatus.NOT_STARTED);
   const [category, setCategory] = useState("SQL");
   const [estimatedTime, setEstimatedTime] = useState(60);
   const [actualTime, setActualTime] = useState(0);
-  const [dueDate, setDueDate] = useState("2026-07-12");
+  const [dueDate, setDueDate] = useState(() => getTodayStr());
   const [tagsInput, setTagsInput] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -68,7 +69,7 @@ export default function TaskManager() {
       dueDate,
       tags,
       notes,
-      status: TaskStatus.NOT_STARTED,
+      status,
     };
 
     if (editingTaskId) {
@@ -85,10 +86,11 @@ export default function TaskManager() {
     setDescription("");
     setPriority(TaskPriority.MEDIUM);
     setDifficulty(TaskDifficulty.MEDIUM);
+    setStatus(TaskStatus.NOT_STARTED);
     setCategory("Learning");
     setEstimatedTime(60);
     setActualTime(0);
-    setDueDate("2026-07-12");
+    setDueDate(getTodayStr());
     setTagsInput("");
     setNotes("");
   };
@@ -99,6 +101,7 @@ export default function TaskManager() {
     setDescription(task.description);
     setPriority(task.priority);
     setDifficulty(task.difficulty);
+    setStatus(task.status);
     setCategory(task.category);
     setEstimatedTime(task.estimatedTime);
     setActualTime(task.actualTime);
@@ -257,15 +260,30 @@ export default function TaskManager() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-[10px] text-[#71717a] font-mono block mb-1">Category</label>
-                <input
-                  type="text"
-                  placeholder="e.g. SQL, Azure, LeetCode"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full bg-[#09090b] border border-[#1f1f23] rounded-lg p-2 text-xs text-[#fafafa] focus:outline-none"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] text-[#71717a] font-mono block mb-1">Category</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. SQL, Azure, LeetCode"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full bg-[#09090b] border border-[#1f1f23] rounded-lg p-2 text-xs text-[#fafafa] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-[#71717a] font-mono block mb-1">Status</label>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as TaskStatus)}
+                    className="w-full bg-[#09090b] border border-[#1f1f23] rounded-lg p-2 text-xs text-[#fafafa] focus:outline-none"
+                  >
+                    <option value={TaskStatus.NOT_STARTED}>Not Started</option>
+                    <option value={TaskStatus.IN_PROGRESS}>In Progress</option>
+                    <option value={TaskStatus.BLOCKED}>Blocked</option>
+                    <option value={TaskStatus.COMPLETED}>Completed</option>
+                  </select>
+                </div>
               </div>
             </div>
 

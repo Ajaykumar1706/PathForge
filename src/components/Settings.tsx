@@ -1,74 +1,62 @@
 import React, { useState } from "react";
 import { useStore } from "../store";
-import { User, Shield, Download, Upload, Palette, Trash2, AlertTriangle, Monitor, Cpu, Terminal, Layers } from "lucide-react";
+import {
+  User,
+  Shield,
+  Download,
+  Upload,
+  Palette,
+  Trash2,
+  AlertTriangle,
+  Globe,
+  Copy,
+  Check,
+  Share2,
+  Sun,
+  Moon,
+  Monitor,
+  Layout,
+  RefreshCw,
+  Sliders
+} from "lucide-react";
 
 export default function Settings() {
-  const { profile, updateProfile, tasks, learningSkills, jobApplications, roadmaps, clearAllData, isAutoStart, toggleAutoStart } = useStore();
+  const {
+    profile,
+    updateProfile,
+    tasks,
+    learningSkills,
+    jobApplications,
+    roadmaps,
+    habits,
+    projects,
+    resumeVersions,
+    plannerSlots,
+    interviewQuestions,
+    clearAllData,
+    theme,
+    setTheme,
+    toggleTheme,
+    density,
+    setDensity,
+    resetUserSession
+  } = useStore();
 
   const [name, setName] = useState(profile.name);
   const [role, setRole] = useState(profile.role);
   const [email, setEmail] = useState(profile.email);
   const [company, setCompany] = useState(profile.company || "");
-  const [glassmorphism, setGlassmorphism] = useState(true);
   const [importStatus, setImportStatus] = useState("");
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [confirmInput, setConfirmInput] = useState("");
+  const [copiedUrl, setCopiedUrl] = useState(false);
 
-  // Windows Desktop specific options
-  const [minimizeToTray, setMinimizeToTray] = useState(true);
-  const [hardwareAccel, setHardwareAccel] = useState(true);
-  const [acrylicEffect, setAcrylicEffect] = useState(false);
-  const [compileState, setCompileState] = useState<"idle" | "compiling" | "done">("idle");
-  const [compileProgress, setCompileProgress] = useState(0);
-
-  const handleSimulateCompile = () => {
-    if (compileState !== "idle") return;
-    setCompileState("compiling");
-    setCompileProgress(5);
-
-    const interval = setInterval(() => {
-      setCompileProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setCompileState("done");
-          return 100;
-        }
-        const step = Math.floor(Math.random() * 15) + 5;
-        return Math.min(prev + step, 100);
-      });
-    }, 200);
-  };
-
-  const handleDownloadSimulatedInstaller = () => {
-    const installerGuide = `==========================================================
-PATHFORGE WINDOWS INSTALLER ARTIFACT GUIDE
-==========================================================
-AppName: PathForge
-Version: 1.0.0
-Platform: Windows (x64)
-Bundler: Tauri CLI v1.6.0
-Installer Target: MSI and Setup.exe
-
-This file serves as a successful compilation certificate of your PathForge Windows Desktop build.
-
-DEVELOPMENT WORKSPACE INSTRUCTIONS TO RUN LOCALLY:
-1. Ensure Rust (cargo) is installed on your Windows host: https://www.rust-lang.org/tools/install
-2. Run 'npm install' in the project directory.
-3. Install WebView2 Runtime (typically pre-installed on Windows 10/11).
-4. Run 'npm run tauri dev' to start the local development window.
-5. Run 'npm run tauri build' to package the final production MSI.
-
-Enjoy your highly optimized standalone desktop client!
-==========================================================`;
-
-    const blob = new Blob([installerGuide], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const downloadAnchor = document.createElement("a");
-    downloadAnchor.setAttribute("href", url);
-    downloadAnchor.setAttribute("download", "pathforge_1.0.0_x64_en-US_installer_instructions.txt");
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+  const handleCopyShareLink = () => {
+    const url = window.location.origin;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedUrl(true);
+      setTimeout(() => setCopiedUrl(false), 2500);
+    });
   };
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -95,6 +83,11 @@ Enjoy your highly optimized standalone desktop client!
       learningSkills,
       jobApplications,
       roadmaps,
+      habits,
+      projects,
+      resumeVersions,
+      plannerSlots,
+      interviewQuestions,
       exportedAt: new Date().toISOString()
     };
 
@@ -122,7 +115,12 @@ Enjoy your highly optimized standalone desktop client!
             tasks: parsed.tasks,
             learningSkills: parsed.learningSkills || [],
             jobApplications: parsed.jobApplications || [],
-            roadmaps: parsed.roadmaps || []
+            roadmaps: parsed.roadmaps || [],
+            habits: parsed.habits || [],
+            projects: parsed.projects || [],
+            resumeVersions: parsed.resumeVersions || [],
+            plannerSlots: parsed.plannerSlots || [],
+            interviewQuestions: parsed.interviewQuestions || []
           });
           setImportStatus("Database imported successfully!");
           // Sync local input state
@@ -259,188 +257,188 @@ Enjoy your highly optimized standalone desktop client!
           </div>
         </div>
 
-        {/* Aesthetics preferences panel */}
+        {/* Personal Web Viewing Experience preferences panel */}
         <div className="bg-[#0c0c0e] border border-[#1f1f23] rounded-xl p-5 space-y-4 shadow-sm lg:col-span-1">
-          <h3 className="font-sans font-bold text-sm text-[#fafafa] uppercase tracking-wider font-mono flex items-center gap-2">
-            <Palette className="w-4 h-4 text-blue-400" />
-            <span>Aesthetics Preferences</span>
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-sans font-bold text-sm text-[#fafafa] uppercase tracking-wider font-mono flex items-center gap-2">
+              <Palette className="w-4 h-4 text-blue-400" />
+              <span>Viewing Experience</span>
+            </h3>
+            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+              Personalized
+            </span>
+          </div>
 
           <div className="space-y-4 bg-[#09090b]/40 p-4 rounded-xl border border-[#1f1f23] text-xs">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-bold text-[#fafafa]">Glassmorphism Backdrops</p>
-                <p className="text-[10px] text-[#71717a] mt-0.5">Applies beautiful background blur filters to cards</p>
+            {/* Theme Selector */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="font-bold text-[#fafafa]">Interface Theme</p>
+                <span className="text-[10px] font-mono text-blue-400 uppercase">
+                  {theme} mode
+                </span>
               </div>
-              <input
-                type="checkbox"
-                checked={glassmorphism}
-                onChange={() => setGlassmorphism(!glassmorphism)}
-                className="w-4 h-4 rounded border-[#27272a] bg-[#18181b] text-blue-500 focus:ring-0 cursor-pointer"
-              />
+              <p className="text-[11px] text-[#71717a]">
+                Choose your preferred canvas. Changes take effect instantly and stay saved for your browser.
+              </p>
+              <div className="grid grid-cols-3 gap-1.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setTheme("dark")}
+                  className={`flex flex-col items-center justify-center gap-1.5 py-2 px-1 rounded-lg border text-xs font-medium cursor-pointer transition-all ${
+                    theme === "dark"
+                      ? "bg-blue-600/20 border-blue-500 text-white font-bold"
+                      : "bg-[#18181b] border-[#27272a] text-zinc-400 hover:text-white hover:bg-[#222226]"
+                  }`}
+                >
+                  <Moon className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Dark</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTheme("light")}
+                  className={`flex flex-col items-center justify-center gap-1.5 py-2 px-1 rounded-lg border text-xs font-medium cursor-pointer transition-all ${
+                    theme === "light"
+                      ? "bg-amber-500/20 border-amber-500 text-amber-500 font-bold"
+                      : "bg-[#18181b] border-[#27272a] text-zinc-400 hover:text-white hover:bg-[#222226]"
+                  }`}
+                >
+                  <Sun className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Light</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTheme("system")}
+                  className={`flex flex-col items-center justify-center gap-1.5 py-2 px-1 rounded-lg border text-xs font-medium cursor-pointer transition-all ${
+                    theme === "system"
+                      ? "bg-indigo-600/20 border-indigo-500 text-indigo-400 font-bold"
+                      : "bg-[#18181b] border-[#27272a] text-zinc-400 hover:text-white hover:bg-[#222226]"
+                  }`}
+                >
+                  <Monitor className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>System</span>
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-[#1f1f23] pt-3">
-              <div>
-                <p className="font-bold text-[#fafafa]">Linear / Notion Minimalist Slate Theme</p>
-                <p className="text-[10px] text-[#71717a] mt-0.5">Deep charcoal dark palette with glowing cobalt elements</p>
+            {/* Layout Density */}
+            <div className="border-t border-[#1f1f23] pt-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="font-bold text-[#fafafa]">Layout Density</p>
+                <span className="text-[10px] font-mono text-zinc-400 uppercase">
+                  {density}
+                </span>
               </div>
-              <span className="text-[10px] font-mono text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded border border-blue-500/15">
-                Active Default
-              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDensity("normal")}
+                  className={`py-1.5 px-2 rounded-lg border text-xs font-medium cursor-pointer transition-all ${
+                    density === "normal"
+                      ? "bg-blue-600/20 border-blue-500 text-white font-bold"
+                      : "bg-[#18181b] border-[#27272a] text-zinc-400 hover:text-white hover:bg-[#222226]"
+                  }`}
+                >
+                  Comfortable
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDensity("compact")}
+                  className={`py-1.5 px-2 rounded-lg border text-xs font-medium cursor-pointer transition-all ${
+                    density === "compact"
+                      ? "bg-blue-600/20 border-blue-500 text-white font-bold"
+                      : "bg-[#18181b] border-[#27272a] text-zinc-400 hover:text-white hover:bg-[#222226]"
+                  }`}
+                >
+                  Compact
+                </button>
+              </div>
+            </div>
+
+            {/* Individual Client Storage Notice */}
+            <div className="border-t border-[#1f1f23] pt-3">
+              <div className="flex items-start gap-2">
+                <Shield className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
+                <p className="text-[11px] text-[#71717a] leading-relaxed">
+                  Your viewing preferences and data are stored locally in your browser session. Other connected users have their own independent workspace.
+                </p>
+              </div>
+            </div>
+
+            {/* Reset Client Session */}
+            <div className="border-t border-[#1f1f23] pt-3">
+              <button
+                type="button"
+                onClick={resetUserSession}
+                className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 hover:border-red-500/40 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                title="Reset your personal browser session back to default settings"
+              >
+                <RefreshCw className="w-3 h-3" />
+                <span>Reset My Web Experience</span>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Windows Native Desktop Integration */}
-        <div className="bg-[#0c0c0e] border border-blue-500/20 rounded-xl p-5 space-y-4 shadow-sm lg:col-span-2">
+        {/* Web Hosting & Sharing Information */}
+        <div className="bg-[#0c0c0e] border border-[#1f1f23] rounded-xl p-5 space-y-4 shadow-sm lg:col-span-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1f1f23] pb-4">
             <div>
               <h3 className="font-sans font-bold text-sm text-[#fafafa] uppercase tracking-wider font-mono flex items-center gap-2">
-                <Monitor className="w-4 h-4 text-blue-400" />
-                <span>Windows Native Desktop & Tauri Integration</span>
+                <Globe className="w-4 h-4 text-blue-400" />
+                <span>Web Deployment & Quick Access</span>
               </h3>
               <p className="text-xs text-[#71717a] mt-1 font-mono">
-                Configure build commands, native runtime options, and generate .exe installers for Windows 10/11
+                Accessible directly from any modern web browser on desktop, tablet, or phone
               </p>
             </div>
             <div className="flex gap-2 shrink-0">
               <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/15 flex items-center gap-1.5 font-bold">
-                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                Tauri v1.6 Core Active
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+                Web Ready • React + Vite
               </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-            {/* Native Options */}
-            <div className="space-y-4 md:col-span-1">
-              <h4 className="text-xs font-bold text-zinc-300 font-mono uppercase tracking-wider">Windows Runtime Preferences</h4>
-              <div className="space-y-3 bg-[#09090b]/40 p-4 rounded-xl border border-[#1f1f23] text-xs">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-bold text-[#fafafa]">Windows Startup Registry</p>
-                    <p className="text-[9px] text-[#71717a]">Launches PathForge on Windows boot</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={isAutoStart}
-                    onChange={toggleAutoStart}
-                    className="w-4 h-4 rounded border-[#27272a] bg-[#18181b] text-blue-500 focus:ring-0 cursor-pointer"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between border-t border-[#1f1f23] pt-3">
-                  <div>
-                    <p className="font-bold text-[#fafafa]">Minimize to System Tray</p>
-                    <p className="text-[9px] text-[#71717a]">Runs silently in background on close</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={minimizeToTray}
-                    onChange={() => setMinimizeToTray(!minimizeToTray)}
-                    className="w-4 h-4 rounded border-[#27272a] bg-[#18181b] text-blue-500 focus:ring-0 cursor-pointer"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between border-t border-[#1f1f23] pt-3">
-                  <div>
-                    <p className="font-bold text-[#fafafa]">GPU Hardware Acceleration</p>
-                    <p className="text-[9px] text-[#71717a]">Improves frame rates on animations</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={hardwareAccel}
-                    onChange={() => setHardwareAccel(!hardwareAccel)}
-                    className="w-4 h-4 rounded border-[#27272a] bg-[#18181b] text-blue-500 focus:ring-0 cursor-pointer"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between border-t border-[#1f1f23] pt-3">
-                  <div>
-                    <p className="font-bold text-[#fafafa]">Acrylic Blur / Vibrancy</p>
-                    <p className="text-[9px] text-[#71717a]">Applies native Windows 11 translucency</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={acrylicEffect}
-                    onChange={() => setAcrylicEffect(!acrylicEffect)}
-                    className="w-4 h-4 rounded border-[#27272a] bg-[#18181b] text-blue-500 focus:ring-0 cursor-pointer"
-                  />
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+            <div className="bg-[#09090b]/60 border border-[#1f1f23] p-4 rounded-xl space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-zinc-200">
+                <Share2 className="w-4 h-4 text-blue-400" />
+                <span>Share with Others</span>
               </div>
+              <p className="text-xs text-[#71717a] leading-relaxed">
+                Anyone can open this web application in their browser. Personal data (tasks, habits, roadmaps) is safely stored in local browser storage, so each user gets their own dedicated workspace.
+              </p>
+              <button
+                onClick={handleCopyShareLink}
+                className="w-full py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {copiedUrl ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4 text-white" />}
+                <span>{copiedUrl ? "Link Copied to Clipboard!" : "Copy Web App Link"}</span>
+              </button>
             </div>
 
-            {/* Desktop Compile Pipeline */}
-            <div className="space-y-4 md:col-span-2 flex flex-col justify-between">
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold text-zinc-300 font-mono uppercase tracking-wider flex items-center gap-1.5">
-                  <Terminal className="w-3.5 h-3.5 text-blue-400" />
-                  <span>Windows (.exe) Compiler Commands</span>
-                </h4>
-                <p className="text-xs text-[#71717a] leading-relaxed">
-                  Tauri uses Rust under the hood to compile a highly optimized, ultra-lightweight Windows binary (under 10MB) that uses the native Webview2 engine.
-                </p>
-
-                <div className="bg-[#040405] border border-[#1f1f23] p-3 rounded-lg font-mono text-[11px] text-zinc-300 space-y-1.5">
-                  <div className="flex items-center justify-between text-zinc-500 border-b border-[#1f1f23] pb-1.5 mb-1.5">
-                    <span>Build command syntax</span>
-                    <span className="text-[9px] bg-[#18181b] px-1.5 rounded text-blue-400 border border-[#27272a]">Cmd / PowerShell</span>
-                  </div>
-                  <div className="text-emerald-400"># Install desktop toolchains and build target</div>
-                  <div><span className="text-zinc-500">$</span> npm run build <span className="text-zinc-500"># Compiles front-end assets to /dist</span></div>
-                  <div><span className="text-zinc-500">$</span> cargo build --release -p path-forge <span className="text-zinc-500"># Rust native compilation</span></div>
-                  <div className="text-blue-400"><span className="text-zinc-500">$</span> npm run tauri build <span className="text-zinc-500"># Bundles as a clean MSI and standalone EXE!</span></div>
-                </div>
+            <div className="bg-[#09090b]/60 border border-[#1f1f23] p-4 rounded-xl space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-zinc-200">
+                <Shield className="w-4 h-4 text-emerald-400" />
+                <span>Zero-Friction Access</span>
               </div>
-
-              <div className="bg-[#09090b]/60 border border-blue-500/10 p-3.5 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-2">
-                <div className="space-y-1">
-                  <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5 text-blue-400 animate-bounce" />
-                    <span>Generate Windows Build Artifact</span>
-                  </p>
-                  <p className="text-[10px] text-[#71717a]">
-                    Compile and bundle PathForge setup files directly in your environment.
-                  </p>
-                </div>
-
-                {compileState === "idle" && (
-                  <button
-                    onClick={handleSimulateCompile}
-                    className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-lg text-xs cursor-pointer transition-colors whitespace-nowrap"
-                  >
-                    Build Setup (.msi / .exe)
-                  </button>
-                )}
-
-                {compileState === "compiling" && (
-                  <div className="w-full sm:w-48 space-y-1.5">
-                    <div className="flex items-center justify-between text-[10px] font-mono">
-                      <span className="text-blue-400 animate-pulse">Compiling Rust crates...</span>
-                      <span>{compileProgress}%</span>
-                    </div>
-                    <div className="w-full bg-[#18181b] h-1.5 rounded-full overflow-hidden border border-[#27272a]">
-                      <div className="bg-blue-500 h-full transition-all duration-300" style={{ width: `${compileProgress}%` }}></div>
-                    </div>
-                  </div>
-                )}
-
-                {compileState === "done" && (
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-1.5 rounded border border-emerald-500/15 text-center font-bold">
-                      ✓ pathforge_1.0.0_x64_en-US.msi compiled
-                    </span>
-                    <button
-                      onClick={handleDownloadSimulatedInstaller}
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors whitespace-nowrap flex items-center justify-center gap-1.5"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      Download Win Installer
-                    </button>
-                  </div>
-                )}
-              </div>
+              <ul className="text-xs text-[#71717a] space-y-1.5 leading-relaxed">
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span>Runs instantly with no downloads or installation required</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span>Fully responsive across smartphones, tablets, and desktop</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span>Export & import JSON anytime to transfer data between devices</span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>

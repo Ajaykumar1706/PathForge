@@ -31,7 +31,8 @@ interface CareerOSState {
   pomodoroSessions: PomodoroSession[];
   activeTab: string;
   isAiLoading: boolean;
-  theme: "dark" | "light";
+  theme: "dark" | "light" | "system";
+  density: "normal" | "compact";
   isAutoStart: boolean;
   notifications: Array<{ id: string; text: string; timestamp: string; type: "info" | "success" | "warning" | "update" }>;
   dailyPriorities: DailyPriority[];
@@ -42,6 +43,9 @@ interface CareerOSState {
 
   // Theme & App actions
   toggleTheme: () => void;
+  setTheme: (theme: "dark" | "light" | "system") => void;
+  setDensity: (density: "normal" | "compact") => void;
+  resetUserSession: () => void;
   toggleAutoStart: () => void;
   addNotification: (text: string, type?: "info" | "success" | "warning" | "update") => void;
   clearNotifications: () => void;
@@ -62,6 +66,7 @@ interface CareerOSState {
   // Planner actions
   setPlannerSlots: (slots: PlannerSlot[]) => void;
   addPlannerSlot: (slot: PlannerSlot) => void;
+  updatePlannerSlot: (oldTime: string, updatedSlot: PlannerSlot) => void;
   deletePlannerSlot: (time: string) => void;
 
   // Roadmap actions
@@ -86,6 +91,7 @@ interface CareerOSState {
   // Habit actions
   toggleHabitDate: (id: string, dateStr: string) => void;
   addHabit: (name: string, frequency?: "daily" | "weekly") => void;
+  updateHabit: (id: string, updates: Partial<Habit>) => void;
   deleteHabit: (id: string) => void;
 
   // Resume actions
@@ -122,21 +128,39 @@ const calculateLevel = (xp: number) => {
   return 5 + Math.floor((xp - 9000) / 5000);
 };
 
-// Initial Seed Data for user profile
+// Dynamic date helpers
+export const getTodayStr = (): string => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+export const getOffsetDateStr = (daysOffset: number): string => {
+  const d = new Date();
+  d.setDate(d.getDate() + daysOffset);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+// Initial Seed Data for user profile (starts at 0 for new user)
 const initialProfile: UserProfile = {
   name: "New Developer",
   email: "developer@example.com",
   role: "Software Engineer",
   company: "Target Company",
-  focusGoal: "Complete SQL Performance Optimization",
-  xp: 1850, // Level 2
-  level: 2,
-  streak: 14,
-  careerScore: 78,
-  focusTimeToday: 75,
-  focusTimeWeek: 310,
-  focusTimeMonth: 1240,
-  completedTasksCount: 42
+  focusGoal: "Plan daily tasks & start building momentum",
+  xp: 0, // Level 1
+  level: 1,
+  streak: 0,
+  careerScore: 0,
+  focusTimeToday: 0,
+  focusTimeWeek: 0,
+  focusTimeMonth: 0,
+  completedTasksCount: 0
 };
 
 const initialTasks: Task[] = [
@@ -150,7 +174,7 @@ const initialTasks: Task[] = [
     category: "SQL",
     estimatedTime: 90,
     actualTime: 45,
-    dueDate: "2026-07-12",
+    dueDate: getTodayStr(),
     tags: ["Database", "SQL", "Optimization"],
     createdAt: new Date().toISOString(),
     notes: "Review explain plan and index utilization on user tables."
@@ -165,7 +189,7 @@ const initialTasks: Task[] = [
     category: "Azure AI",
     estimatedTime: 60,
     actualTime: 0,
-    dueDate: "2026-07-12",
+    dueDate: getTodayStr(),
     tags: ["Cloud", "Azure", "AI Services"],
     createdAt: new Date().toISOString()
   },
@@ -179,7 +203,7 @@ const initialTasks: Task[] = [
     category: "Python Automation",
     estimatedTime: 45,
     actualTime: 0,
-    dueDate: "2026-07-12",
+    dueDate: getTodayStr(),
     tags: ["Scripting", "Python", "Automation"],
     createdAt: new Date().toISOString()
   },
@@ -193,7 +217,7 @@ const initialTasks: Task[] = [
     category: "Interview Prep",
     estimatedTime: 120,
     actualTime: 0,
-    dueDate: "2026-07-13",
+    dueDate: getOffsetDateStr(1),
     tags: ["LeetCode", "DSA", "Graphs"],
     createdAt: new Date().toISOString()
   },
@@ -207,7 +231,7 @@ const initialTasks: Task[] = [
     category: "Project",
     estimatedTime: 90,
     actualTime: 80,
-    dueDate: "2026-07-11",
+    dueDate: getOffsetDateStr(-1),
     tags: ["Frontend", "React", "Tailwind"],
     createdAt: new Date().toISOString()
   },
@@ -221,7 +245,7 @@ const initialTasks: Task[] = [
     category: "Interview Prep",
     estimatedTime: 90,
     actualTime: 0,
-    dueDate: "2026-07-14",
+    dueDate: getOffsetDateStr(2),
     tags: ["System Design", "Scalability", "Redis"],
     createdAt: new Date().toISOString()
   },
@@ -235,7 +259,7 @@ const initialTasks: Task[] = [
     category: "Project",
     estimatedTime: 40,
     actualTime: 15,
-    dueDate: "2026-07-12",
+    dueDate: getTodayStr(),
     tags: ["GitHub", "Portfolio"],
     createdAt: new Date().toISOString()
   },
@@ -249,7 +273,7 @@ const initialTasks: Task[] = [
     category: "Learning",
     estimatedTime: 15,
     actualTime: 0,
-    dueDate: "2026-07-12",
+    dueDate: getTodayStr(),
     tags: ["Certification", "Azure"],
     createdAt: new Date().toISOString()
   }
@@ -307,24 +331,24 @@ const initialSkills: LearningSkill[] = [
   {
     id: "s1",
     name: "Python",
-    progress: 85,
-    hoursLearned: 120,
+    progress: 0,
+    hoursLearned: 0,
     revisionDate: "2026-07-15",
     resources: [
-      { id: "s1-r1", title: "Automate the Boring Stuff with Python", type: "Book", isCompleted: true },
+      { id: "s1-r1", title: "Automate the Boring Stuff with Python", type: "Book", isCompleted: false },
       { id: "s1-r2", title: "Python Advanced Concurrency & Asyncio", type: "Video", isCompleted: false },
-      { id: "s1-r3", title: "Practice Challenges on Algorithms", type: "Practice", isCompleted: true }
+      { id: "s1-r3", title: "Practice Challenges on Algorithms", type: "Practice", isCompleted: false }
     ],
     notes: "Key concepts to remember: Generators, Context Managers, Decorators."
   },
   {
     id: "s2",
     name: "SQL & PostgreSQL",
-    progress: 75,
-    hoursLearned: 45,
+    progress: 0,
+    hoursLearned: 0,
     revisionDate: "2026-07-12",
     resources: [
-      { id: "s2-r1", title: "SQL Indexing and Query Tuning", type: "Course", isCompleted: true },
+      { id: "s2-r1", title: "SQL Indexing and Query Tuning", type: "Course", isCompleted: false },
       { id: "s2-r2", title: "PostgreSQL High Performance", type: "Book", isCompleted: false }
     ],
     notes: "Review query plans, partition tables, and indexing guidelines."
@@ -332,12 +356,12 @@ const initialSkills: LearningSkill[] = [
   {
     id: "s3",
     name: "Azure & AI Search",
-    progress: 50,
-    hoursLearned: 22,
+    progress: 0,
+    hoursLearned: 0,
     revisionDate: "2026-07-18",
     resources: [
       { id: "s3-r1", title: "Azure AI Search Setup and Config", type: "Course", isCompleted: false },
-      { id: "s3-r2", title: "Cognitive Services Overview", type: "Article", isCompleted: true }
+      { id: "s3-r2", title: "Cognitive Services Overview", type: "Article", isCompleted: false }
     ],
     notes: "Focus heavily on Semantic Search features."
   }
@@ -351,12 +375,12 @@ const initialProjects: CareerProject[] = [
     techStack: ["React 19", "Vite", "Zustand", "Tailwind CSS", "Lucide Icons"],
     gitHubUrl: "https://github.com/yourusername/pathforge",
     liveUrl: "https://pathforge-preview.vercel.app",
-    progress: 45,
+    progress: 0,
     deploymentStatus: "success",
     notes: "Next step is implementing beautiful calendar scheduling and Gemini integrations.",
     milestones: [
-      { id: "p1-m1", title: "Define layout and core database model", isCompleted: true },
-      { id: "p1-m2", title: "Implement Kanban Task Board with local storage", isCompleted: true },
+      { id: "p1-m1", title: "Define layout and core database model", isCompleted: false },
+      { id: "p1-m2", title: "Implement Kanban Task Board with local storage", isCompleted: false },
       { id: "p1-m3", title: "Connect server-side Gemini AI assistance", isCompleted: false },
       { id: "p1-m4", title: "Export to resume PDF review module", isCompleted: false }
     ]
@@ -367,52 +391,30 @@ const initialHabits: Habit[] = [
   {
     id: "h1",
     name: "Exercise",
-    streak: 5,
+    streak: 0,
     frequency: "daily",
-    history: {
-      "2026-07-11": true,
-      "2026-07-12": true,
-      "2026-07-10": true,
-      "2026-07-09": true,
-      "2026-07-08": true
-    }
+    history: {}
   },
   {
     id: "h2",
     name: "Meditation",
     streak: 0,
     frequency: "daily",
-    history: {
-      "2026-07-11": false,
-      "2026-07-12": false
-    }
+    history: {}
   },
   {
     id: "h3",
     name: "Python Coding",
-    streak: 8,
+    streak: 0,
     frequency: "daily",
-    history: {
-      "2026-07-12": true,
-      "2026-07-11": true,
-      "2026-07-10": true,
-      "2026-07-09": true,
-      "2026-07-08": true,
-      "2026-07-07": true,
-      "2026-07-06": true,
-      "2026-07-05": true
-    }
+    history: {}
   },
   {
     id: "h4",
     name: "Drink 3L Water",
-    streak: 3,
+    streak: 0,
     frequency: "daily",
-    history: {
-      "2026-07-12": true,
-      "2026-07-11": true,
-      "2026-07-10": true
-    }
+    history: {}
   }
 ];
 
@@ -420,11 +422,11 @@ const initialResumes: ResumeVersion[] = [
   {
     id: "res1",
     title: "SDE_Resume_Backend_v1.pdf",
+    targetRole: "Senior Backend Engineer",
     lastUpdated: "2026-07-10",
     isFavorite: true,
-    notes: "Standard PDF optimized for backend systems & cloud. Contains engineering experience.",
-    aiReviewScore: 82,
-    aiReviewFeedback: "Strong action verbs. Suggest adding more metrics under experience section (e.g. % performance speedups, cloud cost reduction)."
+    notes: "Tailored for high-throughput distributed backend roles. Emphasizes microservices architecture, API design, and database tuning.",
+    skills: ["Go", "Distributed Systems", "PostgreSQL", "Docker", "Redis"]
   }
 ];
 
@@ -472,8 +474,8 @@ const initialJobApplications: JobApplication[] = [
     salary: "$180,000 - $210,000",
     location: "Seattle, WA (Hybrid)",
     status: "Technical",
-    appliedDate: "2026-07-01",
-    interviewDate: "2026-07-15",
+    appliedDate: getOffsetDateStr(-10),
+    interviewDate: getOffsetDateStr(3),
     notes: "Completed online assessment. Up next: Virtual Onsite with 3 Coding and 1 System Design round."
   },
   {
@@ -483,8 +485,8 @@ const initialJobApplications: JobApplication[] = [
     salary: "$190,000",
     location: "Remote (US)",
     status: "HR",
-    appliedDate: "2026-07-05",
-    interviewDate: "2026-07-13",
+    appliedDate: getOffsetDateStr(-5),
+    interviewDate: getOffsetDateStr(6),
     notes: "Introductory chat scheduled with lead recruiter."
   }
 ];
@@ -498,19 +500,145 @@ const initialDailyPriorities: DailyPriority[] = [
 // Combine state from localStorage or seed fallback
 const loadSavedState = (): Partial<CareerOSState> => {
   try {
-    const saved = localStorage.getItem("careeros_state_v1");
+    const saved = localStorage.getItem("pathforge_state_v1") || localStorage.getItem("careeros_state_v1");
     if (saved) {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      // If profile contains old legacy demo numbers (e.g. 1850 XP, 42 tasks, 78 careerScore, 14 streak),
+      // reset them to 0 for a genuine new user baseline
+      if (parsed.profile && (parsed.profile.xp === 1850 || parsed.profile.completedTasksCount === 42 || parsed.profile.streak === 14)) {
+        parsed.profile.xp = 0;
+        parsed.profile.level = 1;
+        parsed.profile.streak = 0;
+        parsed.profile.careerScore = 0;
+        parsed.profile.focusTimeToday = 0;
+        parsed.profile.focusTimeWeek = 0;
+        parsed.profile.focusTimeMonth = 0;
+        parsed.profile.completedTasksCount = 0;
+      }
+      // If skills have legacy demo hours (120, 45, 22), reset to 0
+      if (parsed.learningSkills && parsed.learningSkills[0]?.hoursLearned === 120) {
+        parsed.learningSkills = parsed.learningSkills.map((s: LearningSkill) => ({
+          ...s,
+          hoursLearned: 0,
+          progress: 0
+        }));
+      }
+      // If habits have legacy demo streaks, reset to 0
+      if (parsed.habits && (parsed.habits[0]?.streak === 5 || parsed.habits[2]?.streak === 8)) {
+        parsed.habits = parsed.habits.map((h: Habit) => ({
+          ...h,
+          streak: 0,
+          history: {}
+        }));
+      }
+      // Migrate any obsolete hardcoded July 2026 dates to current dynamic dates
+      if (parsed.tasks && Array.isArray(parsed.tasks)) {
+        parsed.tasks = parsed.tasks.map((t: Task) => {
+          if (t.dueDate && t.dueDate.startsWith("2026-07-")) {
+            if (t.dueDate === "2026-07-11") return { ...t, dueDate: getOffsetDateStr(-1) };
+            if (t.dueDate === "2026-07-13") return { ...t, dueDate: getOffsetDateStr(1) };
+            if (t.dueDate === "2026-07-14") return { ...t, dueDate: getOffsetDateStr(2) };
+            return { ...t, dueDate: getTodayStr() };
+          }
+          return t;
+        });
+      }
+      if (parsed.jobApplications && Array.isArray(parsed.jobApplications)) {
+        parsed.jobApplications = parsed.jobApplications.map((app: JobApplication) => {
+          if (app.interviewDate && app.interviewDate.startsWith("2026-07-")) {
+            return { ...app, interviewDate: getOffsetDateStr(3) };
+          }
+          return app;
+        });
+      }
+      return parsed;
     }
   } catch (e) {
-    console.error("Error loading localStorage careeros state:", e);
+    console.error("Error loading localStorage pathforge state:", e);
   }
   return {};
 };
 
+export const applyThemeToDom = (theme: "dark" | "light" | "system"): "dark" | "light" => {
+  let resolved: "dark" | "light" = "dark";
+  if (theme === "system") {
+    if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+      resolved = "light";
+    } else {
+      resolved = "dark";
+    }
+  } else {
+    resolved = theme === "light" ? "light" : "dark";
+  }
+
+  if (typeof document !== "undefined") {
+    const root = document.documentElement;
+    const body = document.body;
+    if (resolved === "light") {
+      root.classList.add("light");
+      root.classList.remove("dark");
+      body.classList.add("light");
+      body.classList.remove("dark");
+      root.setAttribute("data-theme", "light");
+      root.style.colorScheme = "light";
+    } else {
+      root.classList.add("dark");
+      root.classList.remove("light");
+      body.classList.add("dark");
+      body.classList.remove("light");
+      root.setAttribute("data-theme", "dark");
+      root.style.colorScheme = "dark";
+    }
+  }
+
+  return resolved;
+};
+
+export const applyDensityToDom = (density: "normal" | "compact") => {
+  if (typeof document !== "undefined") {
+    const root = document.documentElement;
+    const body = document.body;
+    if (density === "compact") {
+      root.classList.add("compact-mode");
+      body.classList.add("compact-mode");
+    } else {
+      root.classList.remove("compact-mode");
+      body.classList.remove("compact-mode");
+    }
+  }
+};
+
+// Initial resolution on module load
+let initialTheme: "dark" | "light" | "system" = "dark";
+let initialDensity: "normal" | "compact" = "normal";
+
+try {
+  const savedTheme = localStorage.getItem("pathforge_user_theme");
+  if (savedTheme === "light" || savedTheme === "dark" || savedTheme === "system") {
+    initialTheme = savedTheme;
+  }
+  const savedDensity = localStorage.getItem("pathforge_user_density");
+  if (savedDensity === "normal" || savedDensity === "compact") {
+    initialDensity = savedDensity;
+  }
+} catch {}
+
+if (typeof window !== "undefined") {
+  applyThemeToDom(initialTheme);
+  applyDensityToDom(initialDensity);
+  if (window.matchMedia) {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      const state = useStore.getState();
+      if (state.theme === "system") {
+        applyThemeToDom("system");
+      }
+    });
+  }
+}
+
 const saveState = (state: any) => {
   try {
-    localStorage.setItem("careeros_state_v1", JSON.stringify({
+    localStorage.setItem("pathforge_state_v1", JSON.stringify({
       profile: state.profile,
       tasks: state.tasks,
       plannerSlots: state.plannerSlots,
@@ -524,7 +652,7 @@ const saveState = (state: any) => {
       pomodoroSessions: state.pomodoroSessions,
       activeTab: state.activeTab,
       theme: state.theme,
-      isAutoStart: state.isAutoStart,
+      density: state.density,
       notifications: state.notifications,
       dailyPriorities: state.dailyPriorities
     }));
@@ -550,11 +678,12 @@ export const useStore = create<CareerOSState>((set, get) => {
     pomodoroSessions: loaded.pomodoroSessions || [],
     activeTab: loaded.activeTab || "dashboard",
     isAiLoading: false,
-    theme: loaded.theme || "dark",
-    isAutoStart: loaded.isAutoStart !== undefined ? loaded.isAutoStart : true,
+    theme: initialTheme || loaded.theme || "dark",
+    density: initialDensity || loaded.density || "normal",
+    isAutoStart: false,
     notifications: loaded.notifications || [
-      { id: "init-1", text: "Welcome to PathForge Workspace! Offline SQLite Engine Sync nominal.", timestamp: "14:40", type: "info" },
-      { id: "init-2", text: "SQL Performance Optimization task has a High Priority today.", timestamp: "14:42", type: "warning" }
+      { id: "init-1", text: "Welcome to PathForge! Your personalized web workspace is ready.", timestamp: "09:00", type: "info" },
+      { id: "init-2", text: "Tip: Click 'Share App' in the top bar to share this link with anyone.", timestamp: "09:05", type: "success" }
     ],
     dailyPriorities: loaded.dailyPriorities || initialDailyPriorities,
 
@@ -566,11 +695,47 @@ export const useStore = create<CareerOSState>((set, get) => {
     }),
 
     toggleTheme: () => set((state) => {
-      const nextTheme = state.theme === "dark" ? "light" : "dark";
+      const currentResolved = applyThemeToDom(state.theme);
+      const nextTheme = currentResolved === "dark" ? "light" : "dark";
+      applyThemeToDom(nextTheme);
+      try {
+        localStorage.setItem("pathforge_user_theme", nextTheme);
+      } catch {}
       const next = { ...state, theme: nextTheme };
       saveState(next);
       return { theme: nextTheme };
     }),
+
+    setTheme: (newTheme: "dark" | "light" | "system") => set((state) => {
+      applyThemeToDom(newTheme);
+      try {
+        localStorage.setItem("pathforge_user_theme", newTheme);
+      } catch {}
+      const next = { ...state, theme: newTheme };
+      saveState(next);
+      return { theme: newTheme };
+    }),
+
+    setDensity: (newDensity: "normal" | "compact") => set((state) => {
+      applyDensityToDom(newDensity);
+      try {
+        localStorage.setItem("pathforge_user_density", newDensity);
+      } catch {}
+      const next = { ...state, density: newDensity };
+      saveState(next);
+      return { density: newDensity };
+    }),
+
+    resetUserSession: () => {
+      try {
+        localStorage.removeItem("pathforge_state_v1");
+        localStorage.removeItem("pathforge_user_theme");
+        localStorage.removeItem("pathforge_user_density");
+      } catch {}
+      if (typeof window !== "undefined") {
+        window.location.reload();
+      }
+    },
 
     toggleAutoStart: () => set((state) => {
       const nextAuto = !state.isAutoStart;
@@ -686,10 +851,25 @@ export const useStore = create<CareerOSState>((set, get) => {
     }),
 
     updateTask: (id, updates) => set((state) => {
+      const prevTask = state.tasks.find((t) => t.id === id);
       const nextTasks = state.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t));
-      const next = { ...state, tasks: nextTasks };
+      let nextProfile = { ...state.profile };
+
+      if (updates.status && prevTask && updates.status !== prevTask.status) {
+        if (updates.status === TaskStatus.COMPLETED && prevTask.status !== TaskStatus.COMPLETED) {
+          nextProfile.completedTasksCount = (nextProfile.completedTasksCount || 0) + 1;
+          nextProfile.xp += 150;
+          nextProfile.level = calculateLevel(nextProfile.xp);
+        } else if (prevTask.status === TaskStatus.COMPLETED && updates.status !== TaskStatus.COMPLETED) {
+          nextProfile.completedTasksCount = Math.max(0, (nextProfile.completedTasksCount || 0) - 1);
+          nextProfile.xp = Math.max(0, nextProfile.xp - 150);
+          nextProfile.level = calculateLevel(nextProfile.xp);
+        }
+      }
+
+      const next = { ...state, tasks: nextTasks, profile: nextProfile };
       saveState(next);
-      return { tasks: nextTasks };
+      return { tasks: nextTasks, profile: nextProfile };
     }),
 
     deleteTask: (id) => set((state) => {
@@ -737,6 +917,15 @@ export const useStore = create<CareerOSState>((set, get) => {
 
     addPlannerSlot: (slot) => set((state) => {
       const nextSlots = [...state.plannerSlots, slot].sort((a, b) => a.time.localeCompare(b.time));
+      const next = { ...state, plannerSlots: nextSlots };
+      saveState(next);
+      return { plannerSlots: nextSlots };
+    }),
+
+    updatePlannerSlot: (oldTime, updatedSlot) => set((state) => {
+      const nextSlots = state.plannerSlots
+        .map((s) => (s.time === oldTime ? updatedSlot : s))
+        .sort((a, b) => a.time.localeCompare(b.time));
       const next = { ...state, plannerSlots: nextSlots };
       saveState(next);
       return { plannerSlots: nextSlots };
@@ -942,6 +1131,13 @@ export const useStore = create<CareerOSState>((set, get) => {
         history: {}
       };
       const nextHabits = [...state.habits, newHabit];
+      const next = { ...state, habits: nextHabits };
+      saveState(next);
+      return { habits: nextHabits };
+    }),
+
+    updateHabit: (id, updates) => set((state) => {
+      const nextHabits = state.habits.map((h) => (h.id === id ? { ...h, ...updates } : h));
       const next = { ...state, habits: nextHabits };
       saveState(next);
       return { habits: nextHabits };

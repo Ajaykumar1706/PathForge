@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { useStore } from "../store";
+import { useStore, getTodayStr } from "../store";
 import { TaskStatus } from "../types";
 import {
-  Sparkles,
+  Target,
   CheckCircle2,
   BookOpen,
   Calendar,
@@ -15,7 +15,12 @@ import {
   ArrowUpRight,
   ChevronRight,
   Clock,
-  X
+  X,
+  Route,
+  User,
+  Edit3,
+  Circle,
+  CalendarRange
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -26,6 +31,9 @@ export default function Dashboard() {
     projects,
     jobApplications,
     habits,
+    dailyPriorities,
+    toggleDailyPriority,
+    toggleTaskStatus,
     setActiveTab,
     updateProfile
   } = useStore();
@@ -51,13 +59,15 @@ export default function Dashboard() {
   };
 
   // Derive interactive stats
+  const todayStr = getTodayStr();
+  const completedTasksCount = tasks.filter((t) => t.status === TaskStatus.COMPLETED).length;
   const activeTasks = tasks.filter((t) => t.status !== TaskStatus.COMPLETED);
-  const todaysTasks = tasks.filter((t) => t.dueDate === "2026-07-12");
-  const completedToday = tasks.filter((t) => t.status === TaskStatus.COMPLETED && t.dueDate === "2026-07-12").length;
+  const todaysTasks = tasks.filter((t) => t.dueDate === todayStr);
+  const completedToday = tasks.filter((t) => t.status === TaskStatus.COMPLETED && t.dueDate === todayStr).length;
 
   const totalStudyHours = learningSkills.reduce((sum, s) => sum + s.hoursLearned, 0);
   const finishedProjectsCount = projects.filter((p) => p.progress === 100).length;
-  const activeProjectsCount = projects.filter((p) => p.progress < 100).length;
+  const activeProjectsCount = projects.filter((p) => p.progress < 100 && p.progress > 0).length;
   const totalApplications = jobApplications.length;
 
   // Interviews scheduled are applications with an interview date set
@@ -68,14 +78,54 @@ export default function Dashboard() {
     ? Math.round(learningSkills.reduce((sum, s) => sum + s.progress, 0) / learningSkills.length)
     : 0;
 
+  // Dynamic status for new user baseline
+  const isNewUser = (profile.xp || 0) === 0 && completedTasksCount === 0 && (profile.streak || 0) === 0 && totalStudyHours === 0;
+
+  // Weekly productivity: starts at 0 for all days for a new user
+  const weeklyProductivity = isNewUser
+    ? [0, 0, 0, 0, 0, 0, 0]
+    : [
+        Math.min(100, completedTasksCount * 15),
+        Math.min(100, completedToday * 25),
+        Math.min(100, Math.round(totalStudyHours * 5)),
+        Math.min(100, habits.reduce((acc, h) => acc + (h.streak > 0 ? 10 : 0), 0)),
+        Math.min(100, Math.round(avgSkillProgress * 0.8)),
+        Math.min(100, finishedProjectsCount * 30),
+        Math.min(100, Math.round((profile.xp || 0) / 20))
+      ];
+
+  const weeklyLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const avgPoints = weeklyProductivity.reduce((sum, val) => sum + val, 0) / weeklyProductivity.length;
+
+  // Baseline Y coordinate for chart
+  const getY = (val: number) => {
+    if (val === 0) return 170;
+    return Math.max(25, 170 - (val * 1.35));
+  };
+
+  const weeklyStudyHours = (profile.focusTimeWeek > 0
+    ? profile.focusTimeWeek / 60
+    : totalStudyHours > 0
+      ? totalStudyHours
+      : 0
+  ).toFixed(1);
+
+  const codingCommitScore = tasks.length > 0
+    ? Math.round((completedTasksCount / tasks.length) * 100)
+    : 0;
+
+  const appsWithInterviews = jobApplications.filter(
+    (a) => a.status === "Technical" || a.status === "Manager" || a.status === "Offer"
+  ).length;
+  const offersCount = jobApplications.filter((a) => a.status === "Offer").length;
+  const interviewSuccessRate = appsWithInterviews > 0
+    ? Math.round((offersCount / appsWithInterviews) * 100)
+    : 0;
+
   const handleSaveGoal = () => {
     updateProfile({ focusGoal: newFocusGoal });
     setIsEditingGoal(false);
   };
-
-  // Static chart datasets for beautiful SVG renderings
-  const weeklyProductivity = [25, 45, 30, 60, 75, 50, 85]; // Mon to Sun
-  const weeklyLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
     <div id="dashboard-view" className="flex-1 overflow-y-auto bg-[#09090b] p-6 space-y-6 text-[#fafafa]">
@@ -92,17 +142,17 @@ export default function Dashboard() {
               Edit Identity
             </button>
           </h2>
-          <p className="text-xs text-[#71717a] font-mono mt-1">
-            System status nominal • Ready to maximize your {profile.role || "software engineer"} career growth at {profile.company || "Target Company"}
+          <p className="text-xs text-[#71717a] font-medium mt-1">
+            Welcome back! Here is your daily productivity and career progress overview.
           </p>
         </div>
         <div className="flex items-center gap-2.5">
           <span className="flex h-2.5 w-2.5 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
           <span className="text-xs font-mono font-bold text-[#71717a] uppercase tracking-wider">
-            {profile.name}'s active portal
+            Workspace Active
           </span>
         </div>
       </div>
@@ -115,8 +165,8 @@ export default function Dashboard() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="space-y-3 max-w-xl">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-blue-400 bg-blue-500/10 border border-blue-500/20">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>AI Career Recommendation</span>
+              <Target className="w-3.5 h-3.5" />
+              <span>Daily Focus & Priorities</span>
             </div>
             
             <div className="space-y-1">
@@ -128,17 +178,21 @@ export default function Dashboard() {
                     value={newFocusGoal}
                     onChange={(e) => setNewFocusGoal(e.target.value)}
                     className="bg-[#18181b] border border-[#27272a] rounded-lg px-3 py-1.5 text-sm text-[#fafafa] focus:outline-none focus:ring-1 focus:ring-blue-500 w-full"
+                    placeholder="Enter your focus goal for today..."
                   />
                   <button onClick={handleSaveGoal} className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-3 py-1.5 rounded-lg text-xs cursor-pointer">
                     Save
+                  </button>
+                  <button onClick={() => setIsEditingGoal(false)} className="bg-[#18181b] hover:bg-[#27272a] text-zinc-400 px-3 py-1.5 rounded-lg text-xs cursor-pointer">
+                    Cancel
                   </button>
                 </div>
               ) : (
                 <h3 className="font-sans font-bold text-xl md:text-2xl text-[#fafafa] group flex items-center gap-2">
                   "{profile.focusGoal}"
                   <button
-                    onClick={() => setIsEditingGoal(true)}
-                    className="text-xs text-[#71717a] hover:text-blue-400 font-mono transition-colors font-medium border border-[#1f1f23] hover:border-blue-500/20 px-2 py-0.5 rounded"
+                    onClick={() => { setNewFocusGoal(profile.focusGoal); setIsEditingGoal(true); }}
+                    className="text-xs text-[#71717a] hover:text-blue-400 font-mono transition-colors font-medium border border-[#1f1f23] hover:border-blue-500/20 px-2 py-0.5 rounded cursor-pointer"
                   >
                     Edit Goal
                   </button>
@@ -147,25 +201,25 @@ export default function Dashboard() {
             </div>
 
             <p className="text-sm text-[#a1a1aa]">
-              You have <strong className="text-blue-400 font-semibold">{todaysTasks.length} tasks scheduled</strong> today. Completing these will award you up to <strong className="text-indigo-400 font-mono">+{todaysTasks.length * 150} XP</strong> and unlock your next level-up!
+              You have <strong className="text-blue-400 font-semibold">{todaysTasks.length} tasks scheduled</strong> for today. Complete them to earn <strong className="text-indigo-400 font-mono">+{todaysTasks.length * 150} XP</strong> toward Level {profile.level + 1}!
             </p>
           </div>
 
-          <div className="flex flex-col gap-2 shrink-0">
+          <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0">
             <button
               onClick={() => setActiveTab("planner")}
               className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold px-5 py-3 rounded-xl transition-all shadow-md shadow-blue-500/10 hover:shadow-blue-500/20 text-sm cursor-pointer"
             >
               <Clock className="w-4 h-4" />
-              <span>Start Today's Planner</span>
+              <span>Today's Schedule</span>
               <ChevronRight className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setActiveTab("coach")}
+              onClick={() => setActiveTab("roadmap")}
               className="flex items-center justify-center gap-2 bg-[#18181b] hover:bg-zinc-800 text-white border border-[#27272a] font-semibold px-5 py-3 rounded-xl transition-all text-sm cursor-pointer"
             >
-              <Sparkles className="w-4 h-4 text-blue-400" />
-              <span>Consult Career AI Coach</span>
+              <Route className="w-4 h-4 text-blue-400" />
+              <span>Career Roadmap</span>
             </button>
           </div>
         </div>
@@ -184,7 +238,7 @@ export default function Dashboard() {
             <CheckCircle2 className="w-5 h-5 text-blue-500 transition-transform group-hover:scale-105" />
           </div>
           <div className="mt-4">
-            <h4 className="text-2xl font-bold font-mono text-[#fafafa]">{profile.completedTasksCount}</h4>
+            <h4 className="text-2xl font-bold font-mono text-[#fafafa]">{completedTasksCount}</h4>
             <span className="text-[10px] text-[#71717a] flex items-center gap-1 mt-1">
               <TrendingUp className="w-3 h-3 text-blue-400" /> +150 XP rewarded each
             </span>
@@ -307,7 +361,7 @@ export default function Dashboard() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs text-[#a1a1aa] font-semibold uppercase tracking-wider flex items-center gap-1 group-hover:text-blue-400 transition-colors">
-              <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+              <Award className="w-3.5 h-3.5 text-yellow-400" />
               <span>Career Score</span>
             </span>
             <span className="text-blue-400 font-bold text-xs bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full transition-transform group-hover:scale-105">
@@ -330,14 +384,21 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Chart Column 1: Daily Productivity & Growth Analytics */}
-        <div className="bg-[#0c0c0e] border border-[#1f1f23] rounded-xl p-5 lg:col-span-2 space-y-4">
+        <div className="bg-[#0c0c0e] border border-[#1f1f23] rounded-xl p-5 lg:col-span-2 space-y-4 relative overflow-hidden transition-all duration-200 hover:border-[#2a2a30]">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-sans font-bold text-base text-[#fafafa]">Daily Productivity Graph</h4>
+              <div className="flex items-center gap-2">
+                <h4 className="font-sans font-bold text-base text-[#fafafa]">Daily Productivity Graph</h4>
+                {isNewUser && (
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full font-semibold">
+                    New User Baseline • 0 pts
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-[#71717a]">Completed activities & study sessions this week</p>
             </div>
-            <span className="text-xs font-mono text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded border border-blue-500/25">
-              Avg: 53.5 points
+            <span className="text-xs font-mono text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded border border-blue-500/25 font-bold">
+              Avg: {avgPoints.toFixed(1)} points
             </span>
           </div>
 
@@ -345,9 +406,10 @@ export default function Dashboard() {
           <div className="h-56 w-full relative">
             <svg className="w-full h-full" viewBox="0 0 600 200" preserveAspectRatio="none">
               {/* Grids */}
-              <line x1="0" y1="50" x2="600" y2="50" stroke="#1f1f23" strokeDasharray="3,3" />
-              <line x1="0" y1="100" x2="600" y2="100" stroke="#1f1f23" strokeDasharray="3,3" />
-              <line x1="0" y1="150" x2="600" y2="150" stroke="#1f1f23" strokeDasharray="3,3" />
+              <line x1="0" y1="45" x2="600" y2="45" stroke="#1f1f23" strokeDasharray="3,3" />
+              <line x1="0" y1="95" x2="600" y2="95" stroke="#1f1f23" strokeDasharray="3,3" />
+              <line x1="0" y1="145" x2="600" y2="145" stroke="#1f1f23" strokeDasharray="3,3" />
+              <line x1="0" y1="170" x2="600" y2="170" stroke="#27272a" strokeWidth="1.5" />
 
               {/* Area Gradient */}
               <defs>
@@ -355,43 +417,6 @@ export default function Dashboard() {
                   <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.25" />
                   <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.0" />
                 </linearGradient>
-              </defs>
-
-              {/* Area path */}
-              <path
-                d={`
-                  M 0 200
-                  L 0 ${200 - (weeklyProductivity[0] * 1.8)}
-                  L 100 ${200 - (weeklyProductivity[1] * 1.8)}
-                  L 200 ${200 - (weeklyProductivity[2] * 1.8)}
-                  L 300 ${200 - (weeklyProductivity[3] * 1.8)}
-                  L 400 ${200 - (weeklyProductivity[4] * 1.8)}
-                  L 500 ${200 - (weeklyProductivity[5] * 1.8)}
-                  L 600 ${200 - (weeklyProductivity[6] * 1.8)}
-                  L 600 200
-                  Z
-                `}
-                fill="url(#chartGradient)"
-              />
-
-              {/* Glowing Line */}
-              <path
-                d={`
-                  M 0 ${200 - (weeklyProductivity[0] * 1.8)}
-                  C 50 ${200 - (weeklyProductivity[0] * 1.8)}, 50 ${200 - (weeklyProductivity[1] * 1.8)}, 100 ${200 - (weeklyProductivity[1] * 1.8)}
-                  C 150 ${200 - (weeklyProductivity[1] * 1.8)}, 150 ${200 - (weeklyProductivity[2] * 1.8)}, 200 ${200 - (weeklyProductivity[2] * 1.8)}
-                  C 250 ${200 - (weeklyProductivity[2] * 1.8)}, 250 ${200 - (weeklyProductivity[3] * 1.8)}, 300 ${200 - (weeklyProductivity[3] * 1.8)}
-                  C 350 ${200 - (weeklyProductivity[3] * 1.8)}, 350 ${200 - (weeklyProductivity[4] * 1.8)}, 400 ${200 - (weeklyProductivity[4] * 1.8)}
-                  C 450 ${200 - (weeklyProductivity[4] * 1.8)}, 450 ${200 - (weeklyProductivity[5] * 1.8)}, 500 ${200 - (weeklyProductivity[5] * 1.8)}
-                  C 550 ${200 - (weeklyProductivity[5] * 1.8)}, 550 ${200 - (weeklyProductivity[6] * 1.8)}, 600 ${200 - (weeklyProductivity[6] * 1.8)}
-                `}
-                fill="none"
-                stroke="url(#lineGradient)"
-                strokeWidth="3.5"
-                strokeLinecap="round"
-              />
-
-              <defs>
                 <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
                   <stop offset="0%" stopColor="#3b82f6" />
                   <stop offset="50%" stopColor="#6366f1" />
@@ -399,19 +424,53 @@ export default function Dashboard() {
                 </linearGradient>
               </defs>
 
+              {/* Area path */}
+              <path
+                d={`
+                  M 0 170
+                  L 0 ${getY(weeklyProductivity[0])}
+                  L 100 ${getY(weeklyProductivity[1])}
+                  L 200 ${getY(weeklyProductivity[2])}
+                  L 300 ${getY(weeklyProductivity[3])}
+                  L 400 ${getY(weeklyProductivity[4])}
+                  L 500 ${getY(weeklyProductivity[5])}
+                  L 600 ${getY(weeklyProductivity[6])}
+                  L 600 170
+                  Z
+                `}
+                fill="url(#chartGradient)"
+              />
+
+              {/* Glowing Smooth Line */}
+              <path
+                d={`
+                  M 0 ${getY(weeklyProductivity[0])}
+                  C 50 ${getY(weeklyProductivity[0])}, 50 ${getY(weeklyProductivity[1])}, 100 ${getY(weeklyProductivity[1])}
+                  C 150 ${getY(weeklyProductivity[1])}, 150 ${getY(weeklyProductivity[2])}, 200 ${getY(weeklyProductivity[2])}
+                  C 250 ${getY(weeklyProductivity[2])}, 250 ${getY(weeklyProductivity[3])}, 300 ${getY(weeklyProductivity[3])}
+                  C 350 ${getY(weeklyProductivity[3])}, 350 ${getY(weeklyProductivity[4])}, 400 ${getY(weeklyProductivity[4])}
+                  C 450 ${getY(weeklyProductivity[4])}, 450 ${getY(weeklyProductivity[5])}, 500 ${getY(weeklyProductivity[5])}
+                  C 550 ${getY(weeklyProductivity[5])}, 550 ${getY(weeklyProductivity[6])}, 600 ${getY(weeklyProductivity[6])}
+                `}
+                fill="none"
+                stroke="url(#lineGradient)"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+              />
+
               {/* Data points */}
               {weeklyProductivity.map((val, idx) => {
                 const cx = idx * 100;
-                const cy = 200 - (val * 1.8);
+                const cy = getY(val);
                 return (
                   <g key={idx} className="group/dot cursor-pointer">
                     <circle
                       cx={cx}
                       cy={cy}
-                      r="6"
+                      r="5"
                       fill="#09090b"
                       stroke="#3b82f6"
-                      strokeWidth="3"
+                      strokeWidth="2.5"
                     />
                     <circle
                       cx={cx}
@@ -426,6 +485,21 @@ export default function Dashboard() {
               })}
             </svg>
 
+            {/* Zero state guide for fresh user */}
+            {avgPoints === 0 && (
+              <div className="absolute inset-x-0 top-10 flex flex-col items-center justify-center pointer-events-none text-center px-4">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#121215]/95 border border-[#27272a] shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                  <span className="text-xs font-mono font-medium text-zinc-300">
+                    Statistics start at 0
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-500 mt-1 max-w-xs">
+                  Complete tasks in Task Manager or tick off habits to chart your productivity trajectory.
+                </p>
+              </div>
+            )}
+
             {/* Labels beneath chart */}
             <div className="flex justify-between px-1 mt-2 text-[10px] font-mono text-[#71717a]">
               {weeklyLabels.map((lbl, idx) => (
@@ -437,15 +511,15 @@ export default function Dashboard() {
           <div className="grid grid-cols-3 gap-2 text-center border-t border-[#1f1f23] pt-4">
             <div>
               <p className="text-[10px] font-mono text-[#71717a] uppercase">Weekly Study Hours</p>
-              <h5 className="text-base font-bold text-[#fafafa] mt-0.5">18.5 hrs</h5>
+              <h5 className="text-base font-bold text-[#fafafa] mt-0.5">{weeklyStudyHours} hrs</h5>
             </div>
             <div className="border-x border-[#1f1f23]/80">
               <p className="text-[10px] font-mono text-[#71717a] uppercase">Coding Commit Score</p>
-              <h5 className="text-base font-bold text-blue-400 mt-0.5">92%</h5>
+              <h5 className="text-base font-bold text-blue-400 mt-0.5">{codingCommitScore}%</h5>
             </div>
             <div>
               <p className="text-[10px] font-mono text-[#71717a] uppercase">Interviews Success Rate</p>
-              <h5 className="text-base font-bold text-indigo-400 mt-0.5">40%</h5>
+              <h5 className="text-base font-bold text-indigo-400 mt-0.5">{interviewSuccessRate}%</h5>
             </div>
           </div>
         </div>
@@ -454,49 +528,65 @@ export default function Dashboard() {
         <div className="bg-[#0c0c0e] border border-[#1f1f23] rounded-xl p-5 flex flex-col justify-between">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="font-sans font-bold text-base text-[#fafafa]">Morning Priorities</h4>
-              <span className="text-[10px] font-mono font-semibold uppercase text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/15">
-                Top 3 Focus
+              <div>
+                <h4 className="font-sans font-bold text-base text-[#fafafa]">Morning Priorities</h4>
+                <p className="text-[11px] text-[#71717a] font-mono">Syncs live with Today's Schedule</p>
+              </div>
+              <span className="text-[10px] font-mono font-semibold uppercase text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                {dailyPriorities.filter((p) => p.completed).length} / {dailyPriorities.length} Done
               </span>
             </div>
 
             <div className="space-y-2.5">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-[#09090b] border border-[#1f1f23] hover:border-blue-500/20 transition-all">
-                <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-[#fafafa] truncate">SQL Performance optimization</p>
-                  <p className="text-[10px] text-[#71717a] font-mono">08:00 Exercise & 18:30 SQL</p>
+              {dailyPriorities.slice(0, 3).map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => toggleDailyPriority(item.id)}
+                  className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer group ${
+                    item.completed
+                      ? "bg-emerald-500/5 border-emerald-500/30 text-zinc-400"
+                      : "bg-[#09090b] border-[#1f1f23] hover:border-blue-500/30 text-white"
+                  }`}
+                  title={item.completed ? "Click to uncheck" : "Click to mark done (+100 XP)"}
+                >
+                  <button
+                    type="button"
+                    className="shrink-0 text-zinc-500 group-hover:text-blue-400 transition-colors"
+                  >
+                    {item.completed ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    ) : (
+                      <Circle className="w-4 h-4 text-zinc-600 group-hover:text-blue-400" />
+                    )}
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-xs font-bold truncate ${item.completed ? "line-through text-zinc-500" : "text-[#fafafa]"}`}>
+                      {item.text}
+                    </p>
+                    <p className="text-[10px] text-[#71717a] font-mono">
+                      {item.completed ? "Completed" : "+100 XP on finish"}
+                    </p>
+                  </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-[#71717a] group-hover:text-blue-400 transition-colors" />
                 </div>
-                <ArrowUpRight className="w-3.5 h-3.5 text-[#71717a]" />
-              </div>
-
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-[#09090b] border border-[#1f1f23] hover:border-blue-500/20 transition-all">
-                <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-[#fafafa] truncate">Azure AI Search Index Setup</p>
-                  <p className="text-[10px] text-[#71717a] font-mono">20:00 Core Project Build</p>
-                </div>
-                <ArrowUpRight className="w-3.5 h-3.5 text-[#71717a]" />
-              </div>
-
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-[#09090b] border border-[#1f1f23] hover:border-blue-500/20 transition-all">
-                <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-[#fafafa] truncate">Python Automation Integration</p>
-                  <p className="text-[10px] text-[#71717a] font-mono">22:00 Article Deep-Read</p>
-                </div>
-                <ArrowUpRight className="w-3.5 h-3.5 text-[#71717a]" />
-              </div>
+              ))}
             </div>
           </div>
 
-          <div className="border-t border-[#1f1f23] pt-4 mt-4">
+          <div className="border-t border-[#1f1f23] pt-4 mt-4 grid grid-cols-2 gap-2">
             <button
               onClick={() => setActiveTab("planner")}
-              className="w-full flex items-center justify-between text-xs font-medium text-blue-400 bg-blue-500/5 hover:bg-blue-500/10 border border-blue-500/10 hover:border-blue-500/20 px-3.5 py-2.5 rounded-lg transition-colors group cursor-pointer"
+              className="flex items-center justify-between text-xs font-medium text-blue-400 bg-blue-500/5 hover:bg-blue-500/10 border border-blue-500/10 hover:border-blue-500/20 px-3 py-2 rounded-lg transition-colors group cursor-pointer"
             >
-              <span>Review full daily planner list</span>
-              <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+              <span>Today's Schedule</span>
+              <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+            </button>
+            <button
+              onClick={() => setActiveTab("calendar")}
+              className="flex items-center justify-between text-xs font-medium text-indigo-400 bg-indigo-500/5 hover:bg-indigo-500/10 border border-indigo-500/10 hover:border-indigo-500/20 px-3 py-2 rounded-lg transition-colors group cursor-pointer"
+            >
+              <span>View Calendar</span>
+              <CalendarRange className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
             </button>
           </div>
         </div>
@@ -508,7 +598,7 @@ export default function Dashboard() {
           <div className="bg-[#0c0c0e] border border-[#1f1f23] rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-[#1f1f23] pb-3">
               <h3 className="font-sans font-bold text-lg text-[#fafafa] flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-blue-400" />
+                <User className="w-5 h-5 text-blue-400" />
                 <span>Customize Profile</span>
               </h3>
               <button

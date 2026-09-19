@@ -1,6 +1,6 @@
 {
   "name": "PathForge",
-  "description": "An AI-powered operating system for career growth, productivity, learning, and interview prep.",
+  "description": "A simple and customer-friendly workspace for career growth, task planning, skill tracking, and job applications.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

@@ -131,12 +131,12 @@ export interface Habit {
 
 export interface ResumeVersion {
   id: string;
-  title: string; // e.g. "Full Stack Engineer v1"
+  title: string;
+  targetRole?: string;
   lastUpdated: string;
   isFavorite: boolean;
   notes?: string;
-  aiReviewScore?: number;
-  aiReviewFeedback?: string;
+  skills?: string[];
 }
 
 export interface InterviewPrepQuestion {
